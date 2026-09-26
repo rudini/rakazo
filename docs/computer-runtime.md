@@ -49,6 +49,7 @@ The web and desktop computer view opens a terminal and a file browser from a doc
   - `write_file`, `attach_file`, `open_path`, and `launch_app`, as one line each, with the size for writes and the error if they failed.
 
   Read-only tools (`read_file`, `list_files`) are left out. The bot can still run commands while the user holds control, so the feed never goes away.
+- Without control (for example after Reset, Update, or Recover handed it back), an "Open shell" button takes control again and switches to the shell.
 - A user holding control also gets a Shell tab with an interactive shell. It starts on first use and stays connected across tab switches. `computer.terminalUrl` starts a small PTY server in the computer beside the screen gateway.
   - It is bound to the display's control token and reached through the same sealed capability and gateway as the control screen.
   - It runs as the computer's workspace user (never root), with the same environment as the bot's `shell` tool. Docker execs inherit the container's non-root user; E2B, Daytona, and Box use the same command runner as `shell`. When the computer runs as a host uid without a passwd entry (Docker on macOS), the terminal names it `rakazo` through nss_wrapper for its own session, so prompts and `whoami` work; `/etc/passwd` stays unchanged.

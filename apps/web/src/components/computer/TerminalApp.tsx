@@ -2,7 +2,7 @@ import "@xterm/xterm/css/xterm.css";
 import { useLingui } from "@lingui/react/macro";
 import type { ComputerCommand } from "@rakazo/contracts";
 import { encodeTerminalInput, encodeTerminalResize, foldComputerCommands } from "@rakazo/contracts";
-import { cn, Tabs, TabsList, TabsTrigger } from "@rakazo/ui-web";
+import { Button, cn, Tabs, TabsList, TabsTrigger } from "@rakazo/ui-web";
 import { FitAddon } from "@xterm/addon-fit";
 import { Terminal } from "@xterm/xterm";
 import { type RefObject, useEffect, useRef, useState } from "react";
@@ -18,20 +18,33 @@ import { rpc } from "../../lib/rpc";
 type View = "activity" | "shell";
 
 /**
- * The terminal always shows the bot's own shell commands. A user holding control can also
- * open an interactive shell; it starts on first use and stays connected across tab switches.
+ * The terminal always shows what the bot did on its computer. A user holding control can
+ * also open an interactive shell; it starts on first use and stays connected across tab
+ * switches. Without control, "Open shell" takes control and then switches to the shell.
  */
 export default function TerminalApp({
   botId,
   canUseShell,
+  onTakeControl,
 }: {
   botId: string;
   canUseShell: boolean;
+  onTakeControl?: () => Promise<void>;
 }) {
   const { t } = useLingui();
   const [view, setView] = useState<View>("activity");
   const [shellOpened, setShellOpened] = useState(false);
+  // Set by "Open shell": switch to the shell once control actually arrives.
+  const [shellRequested, setShellRequested] = useState(false);
+  const [takingControl, setTakingControl] = useState(false);
   const active = canUseShell ? view : "activity";
+
+  useEffect(() => {
+    if (!canUseShell || !shellRequested) return;
+    setShellRequested(false);
+    setView("shell");
+    setShellOpened(true);
+  }, [canUseShell, shellRequested]);
 
   return (
     <div className="flex h-full min-h-0 flex-col bg-background">
@@ -49,6 +62,25 @@ export default function TerminalApp({
             <TabsTrigger value="shell">{t`Shell`}</TabsTrigger>
           </TabsList>
         </Tabs>
+      ) : onTakeControl ? (
+        <div className="border-b border-border px-2 py-1.5">
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={takingControl}
+            onClick={async () => {
+              setShellRequested(true);
+              setTakingControl(true);
+              try {
+                await onTakeControl();
+              } finally {
+                setTakingControl(false);
+              }
+            }}
+          >
+            {t`Open shell`}
+          </Button>
+        </div>
       ) : null}
       <ActivityTerminal botId={botId} hidden={active !== "activity"} />
       {canUseShell && shellOpened ? (

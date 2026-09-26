@@ -122,6 +122,19 @@ test("the computer workspace browses, uploads, and downloads files over the scre
 
   await page.getByRole("button", { name: "Close Files" }).click();
   await expect(files).toBeHidden();
+
+  // Maintenance (Reset, Update, Recover) hands control back while the computer stays open.
+  // "Open shell" then takes control again and goes straight to the shell.
+  await rpc(page, "computer/release", { botId });
+  await expect(page.getByText("You have control")).toBeHidden();
+  await expect(terminalWindow.getByRole("tab", { name: "Shell" })).toHaveCount(0);
+  await terminalWindow.getByRole("button", { name: "Open shell" }).click();
+  await expect(page.getByText("You have control")).toBeVisible();
+  await expect(terminalWindow.getByRole("tab", { name: "Shell" })).toHaveAttribute(
+    "aria-selected",
+    "true",
+  );
+  await expect(page.getByTestId("computer-shell")).toContainText("$");
 });
 
 test("the terminal shows the bot's shell commands and file actions live and after reopening", async ({

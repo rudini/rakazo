@@ -22,11 +22,14 @@ export function ComputerWorkspace({
   computer,
   hasControl,
   dock,
+  onTakeControl,
   children,
 }: {
   botId: string;
   computer: ComputerStatus | null;
   hasControl: boolean;
+  /** Take control of the screen; absent while that is not possible (e.g. the bot is busy). */
+  onTakeControl?: () => Promise<void>;
   /** Hidden while teaching so recording captures only the screen. */
   dock: boolean;
   children: ReactNode;
@@ -84,7 +87,11 @@ export function ComputerWorkspace({
           >
             {app.id === "terminal" ? (
               <Suspense fallback={null}>
-                <TerminalApp botId={botId} canUseShell={hasControl && running} />
+                <TerminalApp
+                  botId={botId}
+                  canUseShell={hasControl && running}
+                  onTakeControl={onTakeControl}
+                />
               </Suspense>
             ) : (
               <FilesApp

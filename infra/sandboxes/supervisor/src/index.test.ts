@@ -1,4 +1,5 @@
 import { spawnSync } from "node:child_process";
+import { readFileSync } from "node:fs";
 import http from "node:http";
 import net from "node:net";
 import { resolveSupervisorToken } from "@rakazo/core";
@@ -18,6 +19,7 @@ import {
   ComputerControlUnavailableError,
   clearComputerScreenRegistry,
   completeReleasedScreen,
+  computerCommandEnv,
   computerControlTimeoutMs,
   containerActionStep,
   containerActionSteps,
@@ -836,5 +838,30 @@ describe("docker exec stream demux", () => {
       stdout: padded.toString("utf8"),
       stderr: "",
     });
+  });
+});
+
+describe("computer command identity", () => {
+  it("runs the user's terminal as the same workspace user and environment as the bot's shell", () => {
+    expect(computerCommandEnv({ display: ":2" })).toEqual([
+      "DISPLAY=:2",
+      "HOME=/home/rakazo",
+      "PATH=/home/rakazo/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+      "NPM_CONFIG_PREFIX=/home/rakazo/.local",
+      "PIP_USER=1",
+    ]);
+    const source = readFileSync(new URL("./index.ts", import.meta.url), "utf8");
+    // Every exec, including file writes for uploads, inherits the container's non-root user
+    // (see containerCreateOptions).
+    const execs = source.match(/container\.exec\(\{[\s\S]*?\}\)/g) ?? [];
+    expect(execs.length).toBeGreaterThanOrEqual(2);
+    for (const exec of execs) expect(exec).not.toMatch(/\bUser\s*:/);
+    const route = (path: string) =>
+      source.slice(
+        source.indexOf(`app.post("${path}"`),
+        source.indexOf("app.", source.indexOf(`app.post("${path}"`) + 5),
+      );
+    expect(route("/computers/:id/exec")).toContain("computerCommandEnv(layout)");
+    expect(route("/computers/:id/terminal")).toContain("computerCommandEnv(screen.layout)");
   });
 });

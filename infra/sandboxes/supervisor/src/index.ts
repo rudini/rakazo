@@ -54,6 +54,7 @@ import {
   ComputerControlUnavailableError,
   clearComputerScreenRegistry,
   computerActionSchema,
+  computerCommandEnv,
   computerControlTimeoutMs,
   containerActionSteps,
   demuxDockerStream,
@@ -709,16 +710,6 @@ app.post("/computers/:id/terminal", async (c) => {
 });
 
 class TerminalControlReleasedError extends Error {}
-
-function computerCommandEnv(layout: ReturnType<typeof screenPorts>) {
-  return [
-    `DISPLAY=${layout.display}`,
-    "HOME=/home/rakazo",
-    "PATH=/home/rakazo/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
-    "NPM_CONFIG_PREFIX=/home/rakazo/.local",
-    "PIP_USER=1",
-  ];
-}
 
 app.post("/computers/:id/input", async (c) => {
   const id = c.req.param("id");

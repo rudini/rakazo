@@ -32,4 +32,12 @@ describe("computer command history", () => {
       ]).map((entry) => `${entry.executionId}:${entry.status}`),
     ).toEqual(["a:done", "b:done"]);
   });
+
+  it("never lets a stale running event reopen a finished command", () => {
+    expect(
+      foldComputerCommands([command("a", "done"), command("a", "running")]).map(
+        (entry) => entry.status,
+      ),
+    ).toEqual(["done"]);
+  });
 });

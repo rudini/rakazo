@@ -1,7 +1,7 @@
 import "@xterm/xterm/css/xterm.css";
 import { useLingui } from "@lingui/react/macro";
 import type { ComputerCommand } from "@rakazo/contracts";
-import { encodeTerminalInput, encodeTerminalResize } from "@rakazo/contracts";
+import { encodeTerminalInput, encodeTerminalResize, foldComputerCommands } from "@rakazo/contracts";
 import { FitAddon } from "@xterm/addon-fit";
 import { Terminal } from "@xterm/xterm";
 import { useEffect, useRef, useState } from "react";
@@ -72,11 +72,7 @@ export default function TerminalApp({
       .then((history) => {
         if (cancelled) return;
         // Keep live events that arrived while history loaded.
-        commands = history
-          .reduce(mergeComputerCommand, [] as ComputerCommand[])
-          .concat(
-            commands.filter((live) => !history.some((old) => old.executionId === live.executionId)),
-          );
+        commands = foldComputerCommands([...history, ...commands]);
         render();
       })
       .catch((cause: unknown) => {

@@ -285,10 +285,16 @@ export const ComputerCommandSchema = z.object({
 });
 export type ComputerCommand = z.infer<typeof ComputerCommandSchema>;
 
-/** Collapse running/done events into one entry per command, in start order. */
+/**
+ * Collapse running/done events into one entry per command, in start order. A finished
+ * command stays finished, so history and live events can be merged in either order.
+ */
 export function foldComputerCommands<T extends ComputerCommand>(events: T[]): T[] {
   const byId = new Map<string, T>();
-  for (const event of events) byId.set(event.executionId, event);
+  for (const event of events) {
+    if (byId.get(event.executionId)?.status === "done" && event.status === "running") continue;
+    byId.set(event.executionId, event);
+  }
   return [...byId.values()];
 }
 

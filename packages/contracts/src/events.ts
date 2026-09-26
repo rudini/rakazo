@@ -26,6 +26,7 @@ export const ProductEventType = z.enum([
   "computer.takeover.requested",
   "computer.takeover.granted",
   "computer.takeover.released",
+  "computer.command",
   "memory.revised",
   "routine.created",
   "routine.updated",
@@ -271,6 +272,25 @@ export const MessageBlock = z.discriminatedUnion("kind", [
   }),
 ]);
 export type MessageBlock = z.infer<typeof MessageBlock>;
+
+/** A bot shell command, shown in the computer's terminal. Output is a redacted tail. */
+export const COMPUTER_COMMAND_OUTPUT_MAX_CHARS = 16_000;
+export const ComputerCommandSchema = z.object({
+  executionId: z.string(),
+  command: z.string(),
+  cwd: z.string(),
+  status: z.enum(["running", "done"]),
+  exitCode: z.number().int().nullable(),
+  output: z.string(),
+});
+export type ComputerCommand = z.infer<typeof ComputerCommandSchema>;
+
+/** Collapse running/done events into one entry per command, in start order. */
+export function foldComputerCommands<T extends ComputerCommand>(events: T[]): T[] {
+  const byId = new Map<string, T>();
+  for (const event of events) byId.set(event.executionId, event);
+  return [...byId.values()];
+}
 
 export const ProductEventSchema = z.object({
   id: Id,

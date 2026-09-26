@@ -27,7 +27,7 @@ import {
   routineWakeupJob,
   runContinueJob,
 } from "@rakazo/adapter-kit";
-import type { MessageBlock, RunStatus } from "@rakazo/contracts";
+import type { ComputerCommand, MessageBlock, RunStatus } from "@rakazo/contracts";
 import {
   ATTACHMENT_MAX_BYTES,
   BOT_DESCRIPTION_MAX_LENGTH,
@@ -35,6 +35,7 @@ import {
   BOT_TITLE_MAX_LENGTH,
   BotSecretName,
   botSecretSubmissionSchema,
+  COMPUTER_COMMAND_OUTPUT_MAX_CHARS,
   isAttachmentImageMimeType,
   OPENAI_COMPATIBLE_PROVIDER_ID,
 } from "@rakazo/contracts";
@@ -2581,6 +2582,29 @@ export function createRunExecutor(deps: ExecutorDeps) {
               args.cwd ? String(args.cwd) : undefined,
             );
             workspaceCheckpoint.markDirty();
+            const appendComputerCommand = (payload: ComputerCommand) =>
+              deps.events
+                .append({
+                  spaceId: run.spaceId,
+                  threadId: thread.id,
+                  botId: bot.id,
+                  runId,
+                  type: "computer.command",
+                  payload,
+                })
+                // The terminal feed is a view; losing an entry must not fail the command.
+                .catch((error: unknown) => getLogger().error("computer command event", error));
+            const commandEvent = {
+              executionId,
+              command: redactSecrets(command, runSecrets),
+              cwd: cwd ?? ".",
+            };
+            await appendComputerCommand({
+              ...commandEvent,
+              status: "running",
+              exitCode: null,
+              output: "",
+            });
             const result = await runSandboxCommand(
               deps.sandbox,
               computer,
@@ -2600,7 +2624,16 @@ export function createRunExecutor(deps: ExecutorDeps) {
               agentEnvironment,
               context,
             );
-            return finish(redactAgentCommandResult(result, runSecrets));
+            const redacted = redactAgentCommandResult(result, runSecrets);
+            await appendComputerCommand({
+              ...commandEvent,
+              status: "done",
+              exitCode: redacted.code,
+              output: `${redacted.stdout}${redacted.stderr}`.slice(
+                -COMPUTER_COMMAND_OUTPUT_MAX_CHARS,
+              ),
+            });
+            return finish(redacted);
           }
           if (name === "open_path") {
             if (heldForTakeover) {

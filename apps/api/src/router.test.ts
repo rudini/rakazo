@@ -813,6 +813,148 @@ describe("computer screen url", () => {
   });
 });
 
+describe("computer terminal and file transfer", () => {
+  const actor = {
+    spaceId: "workspace-1",
+    userId: "user-1",
+    email: "user@rakazo.test",
+    isDeploymentOwner: true,
+  } satisfies Actor;
+  const controlled = {
+    controlHolder: "user",
+    controlLeaseId: "lease-1",
+    controlLeaseExpiresAt: new Date(Date.now() + 60_000),
+    controlBotId: "bot-1",
+  };
+
+  function setup(computer: Record<string, unknown> = {}) {
+    const sandbox = {
+      connectTerminal: vi.fn().mockResolvedValue({
+        url: "https://screen.example/vnc.html?path=websockify%3Ftoken%3Dterminal-1",
+      }),
+      readFile: vi.fn().mockResolvedValue(new TextEncoder().encode("hello")),
+      writeFile: vi.fn().mockResolvedValue(undefined),
+    };
+    const prisma = {
+      bot: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: "bot-1",
+          screenGeneration: 2,
+          thread: { id: "thread-1" },
+          computer: {
+            id: "computer-1",
+            screenGeneration: 3,
+            kind: "docker",
+            scope: "team",
+            state: "running",
+            providerRef: "sandbox-ref-1",
+            homeKey: "home-1",
+            controlHolder: "none",
+            controlLeaseId: null,
+            controlLeaseExpiresAt: null,
+            controlBotId: null,
+            controlRunId: null,
+            ...computer,
+          },
+        }),
+      },
+      computer: { updateMany: vi.fn().mockResolvedValue({ count: 1 }) },
+      computerExecutionLease: { findUnique: vi.fn().mockResolvedValue(null) },
+    } as unknown as PrismaClient;
+    const deps = {
+      prisma,
+      sandbox,
+      jobs: { enqueue: vi.fn().mockResolvedValue(undefined) },
+      env: {
+        webOrigin: "http://127.0.0.1:5173",
+        screenProxySecret: "fake-test-secret",
+        sandboxProvider: "docker",
+      },
+      dataDir: "/tmp/rakazo-router-test",
+    } as unknown as RouterDeps;
+    const handler = new RPCHandler(createRouter(deps));
+    const call = async (procedure: string, json: Record<string, unknown>) => {
+      const { response } = await handler.handle(
+        new Request(`http://127.0.0.1/rpc/computer/${procedure}`, {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ json: { botId: "bot-1", ...json } }),
+        }),
+        { prefix: "/rpc", context: { actor } },
+      );
+      return { status: response.status, body: await response.json() };
+    };
+    return { sandbox, call };
+  }
+
+  it("opens a terminal only for the user holding this bot's control lease", async () => {
+    const released = setup();
+    await expect(released.call("terminalUrl", {})).resolves.toMatchObject({ status: 403 });
+    expect(released.sandbox.connectTerminal).not.toHaveBeenCalled();
+
+    const { sandbox, call } = setup(controlled);
+    const { status, body } = await call("terminalUrl", {});
+    expect(status).toBe(200);
+    expect(sandbox.connectTerminal).toHaveBeenCalledWith(
+      expect.objectContaining({ id: "sandbox-ref-1" }),
+      { controlToken: "lease-1", cwd: "bots/bot-1" },
+      expect.anything(),
+    );
+    const url = new URL(body.json.url);
+    expect(url.origin).toBe("http://127.0.0.1:5173");
+    expect(openScreenCapability(url.pathname, "fake-test-secret")).toMatchObject({
+      scope: { botId: "bot-1", controlLeaseId: "lease-1" },
+      target: { hostname: "screen.example", interactive: true },
+    });
+  });
+
+  it("offers no terminal on host computers", async () => {
+    const { sandbox, call } = setup({ ...controlled, kind: "desktop" });
+    await expect(call("terminalUrl", {})).resolves.toEqual({
+      status: 200,
+      body: { json: { url: null } },
+    });
+    expect(sandbox.connectTerminal).not.toHaveBeenCalled();
+  });
+
+  it("uploads into the bot workspace only under control", async () => {
+    const contentBase64 = Buffer.from("notes").toString("base64");
+    const released = setup();
+    await expect(
+      released.call("uploadFile", { path: "notes.txt", contentBase64 }),
+    ).resolves.toMatchObject({ status: 403 });
+    expect(released.sandbox.writeFile).not.toHaveBeenCalled();
+
+    const { sandbox, call } = setup(controlled);
+    await expect(call("uploadFile", { path: "notes.txt", contentBase64 })).resolves.toMatchObject({
+      status: 200,
+    });
+    expect(sandbox.writeFile).toHaveBeenCalledWith(
+      expect.objectContaining({ id: "sandbox-ref-1" }),
+      { path: "bots/bot-1/notes.txt", content: Buffer.from("notes") },
+      expect.anything(),
+    );
+  });
+
+  it("downloads bytes from a running computer", async () => {
+    const { sandbox, call } = setup();
+    await expect(call("downloadFile", { path: "notes.txt" })).resolves.toEqual({
+      status: 200,
+      body: { json: { path: "notes.txt", contentBase64: Buffer.from("hello").toString("base64") } },
+    });
+    expect(sandbox.readFile).toHaveBeenCalledWith(
+      expect.anything(),
+      "bots/bot-1/notes.txt",
+      expect.anything(),
+      { maxBytes: 10 * 1024 * 1024 },
+    );
+    const stopped = setup({ state: "stopped" });
+    await expect(stopped.call("downloadFile", { path: "notes.txt" })).resolves.toMatchObject({
+      status: 409,
+    });
+  });
+});
+
 describe("integration setup authorization", () => {
   it.each([
     { owner: false, configured: false, needsSetup: false },

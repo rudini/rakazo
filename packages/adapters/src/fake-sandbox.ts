@@ -11,6 +11,7 @@ import type {
   SandboxProvider,
   ScreenRequest,
   ScreenSession,
+  TerminalRequest,
 } from "@rakazo/adapter-kit";
 import { canReleaseScreenLease, canTakeScreenLease } from "@rakazo/core";
 import { ComputerScreenUnavailableError, screenSessionKey } from "./computer-screens.js";
@@ -121,6 +122,12 @@ export class FakeSandboxProvider implements SandboxProvider {
       mimeType: "text/plain",
       close: async () => undefined,
     };
+  }
+
+  async connectTerminal(computer: ComputerRef, request: TerminalRequest, context: AdapterContext) {
+    this.requiredBox(computer);
+    if (!request.controlToken) throw new Error("terminal requires screen control");
+    return { url: `fake://terminal/${computer.id}/${screenSessionKey(context)}` };
   }
 
   async sendInput(

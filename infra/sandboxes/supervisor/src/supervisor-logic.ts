@@ -15,6 +15,7 @@ export {
   quiesceBrowserProfilesCommand,
   stopBrowserCommand,
   stopExtraScreenCommand,
+  terminalCommand,
 } from "@rakazo/core/node/desktop-runtime";
 
 import { timingSafeEqual } from "node:crypto";

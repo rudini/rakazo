@@ -207,7 +207,7 @@ msgstr "Активный"
 msgid "Active model"
 msgstr "Активная модель"
 
-#: src/components/computer/TerminalApp.tsx:47
+#: src/components/computer/TerminalApp.tsx:48
 #: src/pages/Shell.tsx:2712
 #: src/pages/Shell.tsx:2714
 msgid "Activity"
@@ -531,6 +531,10 @@ msgstr "в {timeSelect}"
 msgid "Attach file"
 msgstr "Прикрепить файл"
 
+#: src/components/computer/TerminalApp.tsx:75
+msgid "Attached {path}"
+msgstr ""
+
 #: src/pages/Shell.tsx:5676
 msgid "Attachment"
 msgstr "Вложение"
@@ -573,7 +577,7 @@ msgstr "Студия аватаров"
 msgid "Avatars"
 msgstr "Аватары"
 
-#: src/components/computer/FilesApp.tsx:142
+#: src/components/computer/FilesApp.tsx:170
 #: src/pages/PluginsOverlay.tsx:539
 #: src/pages/RoutineEditor.tsx:260
 msgid "Back"
@@ -652,7 +656,7 @@ msgstr ""
 msgid "Browse MCP servers"
 msgstr "Просмотреть MCP-серверы"
 
-#: src/components/computer/ComputerWorkspace.tsx:99
+#: src/components/computer/ComputerWorkspace.tsx:104
 msgid "Browser"
 msgstr ""
 
@@ -819,7 +823,7 @@ msgstr "Секрет клиента"
 msgid "Close"
 msgstr "Закрыть"
 
-#: src/components/computer/ComputerWorkspace.tsx:201
+#: src/components/computer/ComputerWorkspace.tsx:206
 msgid "Close {title}"
 msgstr ""
 
@@ -1215,7 +1219,7 @@ msgstr "Не удалось загрузить {0}. Попробуйте еще 
 msgid "Could not download {name}. Try again."
 msgstr "Не удалось загрузить {name}. Попробуйте еще раз."
 
-#: src/components/computer/FilesApp.tsx:99
+#: src/components/computer/FilesApp.tsx:127
 msgid "Could not download file"
 msgstr ""
 
@@ -1223,7 +1227,7 @@ msgstr ""
 msgid "Could not install connector"
 msgstr "Не удалось установить коннектор"
 
-#: src/components/computer/FilesApp.tsx:57
+#: src/components/computer/FilesApp.tsx:64
 msgid "Could not list files"
 msgstr ""
 
@@ -1247,7 +1251,7 @@ msgstr ""
 msgid "Could not load bots. Reload to try again."
 msgstr "Не удалось загрузить ботов. Обновите страницу и попробуйте снова."
 
-#: src/components/computer/TerminalApp.tsx:87
+#: src/components/computer/TerminalApp.tsx:97
 msgid "Could not load commands"
 msgstr ""
 
@@ -1290,7 +1294,7 @@ msgstr "Не удалось загрузить статус обновления
 msgid "Could not load voice settings"
 msgstr "Не удалось загрузить голосовые настройки."
 
-#: src/components/computer/FilesApp.tsx:85
+#: src/components/computer/FilesApp.tsx:113
 msgid "Could not open file"
 msgstr ""
 
@@ -1298,7 +1302,7 @@ msgstr ""
 msgid "Could not open local settings. Start the local server and create its owner account, then try again."
 msgstr "Не удалось открыть локальные настройки. Запустите локальный сервер и создайте учетную запись владельца, затем повторите попытку."
 
-#: src/components/computer/TerminalApp.tsx:138
+#: src/components/computer/TerminalApp.tsx:148
 msgid "Could not open terminal"
 msgstr ""
 
@@ -1448,7 +1452,7 @@ msgstr "Не удалось обновить реакцию"
 msgid "Could not update the default memory scope"
 msgstr "Не удалось обновить область памяти по умолчанию."
 
-#: src/components/computer/FilesApp.tsx:116
+#: src/components/computer/FilesApp.tsx:144
 msgid "Could not upload file"
 msgstr ""
 
@@ -1732,7 +1736,7 @@ msgstr "У вас нет учетной записи?"
 msgid "Done"
 msgstr "Готово"
 
-#: src/components/computer/FilesApp.tsx:155
+#: src/components/computer/FilesApp.tsx:183
 #: src/pages/Artifacts.tsx:892
 msgid "Download"
 msgstr ""
@@ -1741,7 +1745,7 @@ msgstr ""
 #. placeholder {0}: props.name
 #: src/components/ArtifactFileCard.tsx:87
 #: src/components/ArtifactFileCard.tsx:88
-#: src/components/computer/FilesApp.tsx:221
+#: src/components/computer/FilesApp.tsx:249
 msgid "Download {0}"
 msgstr "Скачать {0}"
 
@@ -2196,6 +2200,10 @@ msgstr "Язык"
 #: src/components/DesktopUpdates.tsx:114
 msgid "Later"
 msgstr "Позже"
+
+#: src/components/computer/TerminalApp.tsx:77
+msgid "Launched {app}"
+msgstr ""
 
 #: src/pages/MessagingSettingsOverlay.tsx:249
 msgid "Leave"
@@ -2797,6 +2805,10 @@ msgstr "Открытые задачи"
 #: src/pages/Onboarding.tsx:420
 msgid "OpenAI-compatible server URL"
 msgstr "URL-адрес сервера, совместимого с OpenAI"
+
+#: src/components/computer/TerminalApp.tsx:76
+msgid "Opened {path}"
+msgstr ""
 
 #: src/pages/Shell.tsx:6139
 msgid "Opened its thread."
@@ -3478,7 +3490,7 @@ msgstr "Общий чат с 2-6 ботами. Все отвечают в одн
 msgid "Shared documents"
 msgstr "Общие документы"
 
-#: src/components/computer/TerminalApp.tsx:48
+#: src/components/computer/TerminalApp.tsx:49
 msgid "Shell"
 msgstr ""
 
@@ -3924,7 +3936,7 @@ msgstr "Обновление компьютера команды"
 msgid "Updating…"
 msgstr "Обновление…"
 
-#: src/components/computer/FilesApp.tsx:166
+#: src/components/computer/FilesApp.tsx:194
 #: src/pages/shell/avatar-studio-popover.tsx:177
 msgid "Upload"
 msgstr "Загрузить"
@@ -4051,6 +4063,10 @@ msgstr "Где должны работать боты?"
 #: src/pages/CallView.tsx:251
 msgid "Working…"
 msgstr "Выполняется…"
+
+#: src/components/computer/TerminalApp.tsx:74
+msgid "Wrote {path}"
+msgstr ""
 
 #: src/pages/Shell.tsx:5701
 msgid "Yesterday"

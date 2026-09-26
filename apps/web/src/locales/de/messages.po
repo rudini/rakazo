@@ -207,7 +207,7 @@ msgstr ""
 msgid "Active model"
 msgstr "Aktives Modell"
 
-#: src/components/computer/TerminalApp.tsx:47
+#: src/components/computer/TerminalApp.tsx:48
 #: src/pages/Shell.tsx:2712
 #: src/pages/Shell.tsx:2714
 msgid "Activity"
@@ -531,6 +531,10 @@ msgstr "um {timeSelect}"
 msgid "Attach file"
 msgstr "Datei anhängen"
 
+#: src/components/computer/TerminalApp.tsx:75
+msgid "Attached {path}"
+msgstr "{path} angehängt"
+
 #: src/pages/Shell.tsx:5676
 msgid "Attachment"
 msgstr "Anhang"
@@ -573,7 +577,7 @@ msgstr "Avatar-Studio"
 msgid "Avatars"
 msgstr ""
 
-#: src/components/computer/FilesApp.tsx:142
+#: src/components/computer/FilesApp.tsx:170
 #: src/pages/PluginsOverlay.tsx:539
 #: src/pages/RoutineEditor.tsx:260
 msgid "Back"
@@ -652,7 +656,7 @@ msgstr ""
 msgid "Browse MCP servers"
 msgstr ""
 
-#: src/components/computer/ComputerWorkspace.tsx:99
+#: src/components/computer/ComputerWorkspace.tsx:104
 msgid "Browser"
 msgstr "Browser"
 
@@ -819,7 +823,7 @@ msgstr ""
 msgid "Close"
 msgstr "Schließen"
 
-#: src/components/computer/ComputerWorkspace.tsx:201
+#: src/components/computer/ComputerWorkspace.tsx:206
 msgid "Close {title}"
 msgstr "{title} schließen"
 
@@ -1215,7 +1219,7 @@ msgstr "{0} konnte nicht heruntergeladen werden. Versuche es erneut."
 msgid "Could not download {name}. Try again."
 msgstr "{name} konnte nicht heruntergeladen werden. Versuche es erneut."
 
-#: src/components/computer/FilesApp.tsx:99
+#: src/components/computer/FilesApp.tsx:127
 msgid "Could not download file"
 msgstr "Datei konnte nicht heruntergeladen werden"
 
@@ -1223,7 +1227,7 @@ msgstr "Datei konnte nicht heruntergeladen werden"
 msgid "Could not install connector"
 msgstr "Connector konnte nicht installiert werden"
 
-#: src/components/computer/FilesApp.tsx:57
+#: src/components/computer/FilesApp.tsx:64
 msgid "Could not list files"
 msgstr "Dateien konnten nicht geladen werden"
 
@@ -1247,7 +1251,7 @@ msgstr ""
 msgid "Could not load bots. Reload to try again."
 msgstr ""
 
-#: src/components/computer/TerminalApp.tsx:87
+#: src/components/computer/TerminalApp.tsx:97
 msgid "Could not load commands"
 msgstr "Befehle konnten nicht geladen werden"
 
@@ -1290,7 +1294,7 @@ msgstr ""
 msgid "Could not load voice settings"
 msgstr "Stimmeinstellungen konnten nicht geladen werden"
 
-#: src/components/computer/FilesApp.tsx:85
+#: src/components/computer/FilesApp.tsx:113
 msgid "Could not open file"
 msgstr "Datei konnte nicht geöffnet werden"
 
@@ -1298,7 +1302,7 @@ msgstr "Datei konnte nicht geöffnet werden"
 msgid "Could not open local settings. Start the local server and create its owner account, then try again."
 msgstr ""
 
-#: src/components/computer/TerminalApp.tsx:138
+#: src/components/computer/TerminalApp.tsx:148
 msgid "Could not open terminal"
 msgstr "Terminal konnte nicht geöffnet werden"
 
@@ -1448,7 +1452,7 @@ msgstr ""
 msgid "Could not update the default memory scope"
 msgstr "Standardbereich für Erinnerungen konnte nicht aktualisiert werden"
 
-#: src/components/computer/FilesApp.tsx:116
+#: src/components/computer/FilesApp.tsx:144
 msgid "Could not upload file"
 msgstr "Datei konnte nicht hochgeladen werden"
 
@@ -1732,7 +1736,7 @@ msgstr "Du hast noch kein Konto?"
 msgid "Done"
 msgstr "Fertig"
 
-#: src/components/computer/FilesApp.tsx:155
+#: src/components/computer/FilesApp.tsx:183
 #: src/pages/Artifacts.tsx:892
 msgid "Download"
 msgstr ""
@@ -1741,7 +1745,7 @@ msgstr ""
 #. placeholder {0}: props.name
 #: src/components/ArtifactFileCard.tsx:87
 #: src/components/ArtifactFileCard.tsx:88
-#: src/components/computer/FilesApp.tsx:221
+#: src/components/computer/FilesApp.tsx:249
 msgid "Download {0}"
 msgstr "{0} herunterladen"
 
@@ -2196,6 +2200,10 @@ msgstr "Sprache"
 #: src/components/DesktopUpdates.tsx:114
 msgid "Later"
 msgstr ""
+
+#: src/components/computer/TerminalApp.tsx:77
+msgid "Launched {app}"
+msgstr "{app} gestartet"
 
 #: src/pages/MessagingSettingsOverlay.tsx:249
 msgid "Leave"
@@ -2797,6 +2805,10 @@ msgstr "Offene Arbeit"
 #: src/pages/Onboarding.tsx:420
 msgid "OpenAI-compatible server URL"
 msgstr "URL eines OpenAI-kompatiblen Servers"
+
+#: src/components/computer/TerminalApp.tsx:76
+msgid "Opened {path}"
+msgstr "{path} geöffnet"
 
 #: src/pages/Shell.tsx:6139
 msgid "Opened its thread."
@@ -3478,7 +3490,7 @@ msgstr ""
 msgid "Shared documents"
 msgstr "Geteilte Dokumente"
 
-#: src/components/computer/TerminalApp.tsx:48
+#: src/components/computer/TerminalApp.tsx:49
 msgid "Shell"
 msgstr "Shell"
 
@@ -3924,7 +3936,7 @@ msgstr ""
 msgid "Updating…"
 msgstr ""
 
-#: src/components/computer/FilesApp.tsx:166
+#: src/components/computer/FilesApp.tsx:194
 #: src/pages/shell/avatar-studio-popover.tsx:177
 msgid "Upload"
 msgstr "Hochladen"
@@ -4051,6 +4063,10 @@ msgstr "Wo sollen Bots ausgeführt werden?"
 #: src/pages/CallView.tsx:251
 msgid "Working…"
 msgstr "Wird verarbeitet…"
+
+#: src/components/computer/TerminalApp.tsx:74
+msgid "Wrote {path}"
+msgstr "{path} geschrieben"
 
 #: src/pages/Shell.tsx:5701
 msgid "Yesterday"

@@ -13,6 +13,7 @@ import {
 
 const command = (overrides: Partial<ComputerCommand> = {}): ComputerCommand => ({
   executionId: "call-1",
+  kind: "shell",
   command: "ls",
   cwd: "bots/bot-1",
   status: "done",
@@ -21,12 +22,41 @@ const command = (overrides: Partial<ComputerCommand> = {}): ComputerCommand => (
   ...overrides,
 });
 
+const labels = {
+  write_file: (path: string) => `Wrote ${path}`,
+  attach_file: (path: string) => `Attached ${path}`,
+  open_path: (path: string) => `Opened ${path}`,
+  launch_app: (app: string) => `Launched ${app}`,
+};
+
 describe("computer terminal feed", () => {
   it("renders a prompt line, output, and only failing exit codes", () => {
-    expect(formatComputerCommand(command())).toBe("\x1b[1m$ ls\x1b[0m\r\na\r\nb\r\n");
-    expect(formatComputerCommand(command({ exitCode: 2, output: "" }))).toBe(
+    expect(formatComputerCommand(command(), labels)).toBe("\x1b[1m$ ls\x1b[0m\r\na\r\nb\r\n");
+    expect(formatComputerCommand(command({ exitCode: 2, output: "" }), labels)).toBe(
       "\x1b[1m$ ls\x1b[0m\r\n\x1b[2m[exit 2]\x1b[0m\r\n",
     );
+  });
+
+  it("renders file and app actions as one described line, with the error if they failed", () => {
+    const wrote = command({ kind: "write_file", command: "notes.txt", output: "", bytes: 2048 });
+    expect(formatComputerCommand(wrote, labels)).toBe(
+      "\x1b[2m✎\x1b[0m Wrote notes.txt \x1b[2m(2.0 KB)\x1b[0m\r\n",
+    );
+    const failed = command({
+      kind: "attach_file",
+      command: "missing.pdf",
+      exitCode: 1,
+      output: "file not found or unreadable",
+    });
+    expect(formatComputerCommand(failed, labels)).toBe(
+      "\x1b[2m✎\x1b[0m Attached missing.pdf\r\n\x1b[2mfile not found or unreadable\x1b[0m\r\n",
+    );
+    expect(
+      formatComputerCommand(
+        command({ kind: "launch_app", command: "firefox", output: "" }),
+        labels,
+      ),
+    ).toBe("\x1b[2m↗\x1b[0m Launched firefox\r\n");
   });
 
   it("replaces a running command with its result in place", () => {

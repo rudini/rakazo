@@ -28,12 +28,38 @@ export function mergeComputerCommand(commands: ComputerCommand[], next: Computer
   return foldComputerCommands([...commands, next]);
 }
 
-/** Render one command as terminal text: a bold prompt line, its output, and a failed exit code. */
-export function formatComputerCommand(command: ComputerCommand) {
-  const lines = [`\x1b[1m$ ${command.command}\x1b[0m`];
-  if (command.output) lines.push(command.output.replace(/\n$/, ""));
-  if (command.status === "done" && command.exitCode) {
-    lines.push(`\x1b[2m[exit ${command.exitCode}]\x1b[0m`);
+/** Localized one-line descriptions of the bot's file and app actions. */
+export type ComputerActionLabels = Record<
+  Exclude<ComputerCommand["kind"], "shell">,
+  (target: string) => string
+>;
+
+const ACTION_GLYPHS: Record<keyof ComputerActionLabels, string> = {
+  write_file: "✎",
+  attach_file: "✎",
+  open_path: "↗",
+  launch_app: "↗",
+};
+
+/**
+ * Render one Activity entry as terminal text. Shell commands get a bold prompt line, their
+ * output, and a failed exit code; file and app actions get one line and, if they failed, the
+ * error.
+ */
+export function formatComputerCommand(command: ComputerCommand, labels: ComputerActionLabels) {
+  const lines: string[] = [];
+  if (command.kind === "shell") {
+    lines.push(`\x1b[1m$ ${command.command}\x1b[0m`);
+    if (command.output) lines.push(command.output.replace(/\n$/, ""));
+    if (command.status === "done" && command.exitCode) {
+      lines.push(`\x1b[2m[exit ${command.exitCode}]\x1b[0m`);
+    }
+  } else {
+    const size = command.bytes === undefined ? "" : ` \x1b[2m(${formatSize(command.bytes)})\x1b[0m`;
+    lines.push(
+      `\x1b[2m${ACTION_GLYPHS[command.kind]}\x1b[0m ${labels[command.kind](command.command)}${size}`,
+    );
+    if (command.exitCode) lines.push(`\x1b[2m${command.output}\x1b[0m`);
   }
   return `${lines.join("\n").replace(/\r?\n/g, "\r\n")}\r\n`;
 }

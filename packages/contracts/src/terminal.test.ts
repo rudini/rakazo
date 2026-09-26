@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { type ComputerCommand, foldComputerCommands } from "./events.js";
+import { type ComputerCommand, ComputerCommandSchema, foldComputerCommands } from "./events.js";
 import { encodeTerminalInput, encodeTerminalResize } from "./terminal.js";
 
 describe("terminal framing", () => {
@@ -15,6 +15,7 @@ describe("terminal framing", () => {
 describe("computer command history", () => {
   const command = (executionId: string, status: ComputerCommand["status"]): ComputerCommand => ({
     executionId,
+    kind: "shell",
     command: `echo ${executionId}`,
     cwd: ".",
     status,
@@ -31,6 +32,11 @@ describe("computer command history", () => {
         command("a", "done"),
       ]).map((entry) => `${entry.executionId}:${entry.status}`),
     ).toEqual(["a:done", "b:done"]);
+  });
+
+  it("reads entries recorded before kinds existed as shell commands", () => {
+    const { kind: _kind, ...legacy } = command("a", "done");
+    expect(ComputerCommandSchema.parse(legacy).kind).toBe("shell");
   });
 
   it("never lets a stale running event reopen a finished command", () => {

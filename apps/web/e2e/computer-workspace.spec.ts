@@ -124,7 +124,7 @@ test("the computer workspace browses, uploads, and downloads files over the scre
   await expect(files).toBeHidden();
 });
 
-test("the terminal shows the bot's shell commands live and after reopening", async ({
+test("the terminal shows the bot's shell commands and file actions live and after reopening", async ({
   page,
 }, testInfo) => {
   await signup(page, `terminal-feed-${Date.now()}@rakazo.test`, "password12", "Terminal Feed");
@@ -156,9 +156,25 @@ test("the terminal shows the bot's shell commands live and after reopening", asy
   await expect
     .poll(async () => ((await terminal.textContent()) ?? "").split("$ echo").length - 1)
     .toBe(1);
+  // File tools show up too, not only shell commands.
+  await expect
+    .poll(
+      () =>
+        rpc(page, "threads/send", {
+          botId,
+          text: "write a file called feed-note.txt that says hallo",
+        }).then(
+          () => true,
+          () => false,
+        ),
+      { timeout: 30_000 },
+    )
+    .toBe(true);
+  await expect(terminal).toContainText("Wrote feed-note.txt", { timeout: 30_000 });
   await captureScreenshot(page, testInfo, "computer-terminal-bot-feed");
 
   await page.getByRole("button", { name: "Close Terminal" }).click();
   await page.getByRole("button", { name: "Terminal", exact: true }).click();
   await expect(page.getByTestId("computer-terminal")).toContainText("$ echo terminal-feed-ok");
+  await expect(page.getByTestId("computer-terminal")).toContainText("Wrote feed-note.txt");
 });

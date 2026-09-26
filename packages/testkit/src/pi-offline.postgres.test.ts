@@ -153,7 +153,16 @@ describe.skipIf(!databaseAvailable)("offline Pi product journey", () => {
       );
       expect(commands).toEqual([
         expect.objectContaining({
+          executionId: "product-write",
+          kind: "write_file",
+          command: "notes/result.txt",
+          status: "done",
+          exitCode: 0,
+          bytes: 5,
+        }),
+        expect.objectContaining({
           executionId: "product-shell",
+          kind: "shell",
           command: "wc -c notes/result.txt",
           status: "done",
           exitCode: 0,

@@ -273,15 +273,30 @@ export const MessageBlock = z.discriminatedUnion("kind", [
 ]);
 export type MessageBlock = z.infer<typeof MessageBlock>;
 
-/** A bot shell command, shown in the computer's terminal. Output is a redacted tail. */
+/**
+ * Something the bot did on its computer, shown in the terminal's Activity view: a shell
+ * command (with a redacted output tail) or a file/app action, whose `command` is the path or
+ * app name. Entries recorded before `kind` existed are shell commands.
+ */
 export const COMPUTER_COMMAND_OUTPUT_MAX_CHARS = 16_000;
+export const ComputerCommandKind = z.enum([
+  "shell",
+  "write_file",
+  "attach_file",
+  "open_path",
+  "launch_app",
+]);
+export type ComputerCommandKind = z.infer<typeof ComputerCommandKind>;
 export const ComputerCommandSchema = z.object({
   executionId: z.string(),
+  kind: ComputerCommandKind.default("shell"),
   command: z.string(),
   cwd: z.string(),
   status: z.enum(["running", "done"]),
   exitCode: z.number().int().nullable(),
   output: z.string(),
+  /** Size written by write_file. */
+  bytes: z.number().int().nonnegative().optional(),
 });
 export type ComputerCommand = z.infer<typeof ComputerCommandSchema>;
 

@@ -7,6 +7,7 @@ import { FitAddon } from "@xterm/addon-fit";
 import { Terminal } from "@xterm/xterm";
 import { type RefObject, useEffect, useRef, useState } from "react";
 import {
+  type ComputerActionLabels,
   formatComputerCommand,
   mergeComputerCommand,
   subscribeComputerCommands,
@@ -69,7 +70,16 @@ function ActivityTerminal({ botId, hidden }: { botId: string; hidden: boolean })
     let cancelled = false;
     // Writes are queued, so clear in-band (ESC c) rather than with reset(), which runs
     // immediately and would let an earlier queued render land after it.
-    const render = () => terminal.write(`\x1bc${commands.map(formatComputerCommand).join("")}`);
+    const labels: ComputerActionLabels = {
+      write_file: (path) => t`Wrote ${path}`,
+      attach_file: (path) => t`Attached ${path}`,
+      open_path: (path) => t`Opened ${path}`,
+      launch_app: (app) => t`Launched ${app}`,
+    };
+    const render = () =>
+      terminal.write(
+        `\x1bc${commands.map((command) => formatComputerCommand(command, labels)).join("")}`,
+      );
     const unsubscribe = subscribeComputerCommands((eventBotId, command) => {
       if (eventBotId !== botId) return;
       commands = mergeComputerCommand(commands, command);

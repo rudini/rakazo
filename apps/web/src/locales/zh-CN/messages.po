@@ -207,7 +207,7 @@ msgstr "启用"
 msgid "Active model"
 msgstr "当前模型"
 
-#: src/components/computer/TerminalApp.tsx:47
+#: src/components/computer/TerminalApp.tsx:48
 #: src/pages/Shell.tsx:2712
 #: src/pages/Shell.tsx:2714
 msgid "Activity"
@@ -531,6 +531,10 @@ msgstr "{timeSelect}"
 msgid "Attach file"
 msgstr "附加文件"
 
+#: src/components/computer/TerminalApp.tsx:75
+msgid "Attached {path}"
+msgstr ""
+
 #: src/pages/Shell.tsx:5676
 msgid "Attachment"
 msgstr "附件"
@@ -573,7 +577,7 @@ msgstr "头像工作室"
 msgid "Avatars"
 msgstr "头像"
 
-#: src/components/computer/FilesApp.tsx:142
+#: src/components/computer/FilesApp.tsx:170
 #: src/pages/PluginsOverlay.tsx:539
 #: src/pages/RoutineEditor.tsx:260
 msgid "Back"
@@ -652,7 +656,7 @@ msgstr ""
 msgid "Browse MCP servers"
 msgstr ""
 
-#: src/components/computer/ComputerWorkspace.tsx:99
+#: src/components/computer/ComputerWorkspace.tsx:104
 msgid "Browser"
 msgstr ""
 
@@ -819,7 +823,7 @@ msgstr ""
 msgid "Close"
 msgstr "关闭"
 
-#: src/components/computer/ComputerWorkspace.tsx:201
+#: src/components/computer/ComputerWorkspace.tsx:206
 msgid "Close {title}"
 msgstr ""
 
@@ -1215,7 +1219,7 @@ msgstr "无法下载 {0}。请重试。"
 msgid "Could not download {name}. Try again."
 msgstr "无法下载 {name}。请重试。"
 
-#: src/components/computer/FilesApp.tsx:99
+#: src/components/computer/FilesApp.tsx:127
 msgid "Could not download file"
 msgstr ""
 
@@ -1223,7 +1227,7 @@ msgstr ""
 msgid "Could not install connector"
 msgstr "无法安装连接器"
 
-#: src/components/computer/FilesApp.tsx:57
+#: src/components/computer/FilesApp.tsx:64
 msgid "Could not list files"
 msgstr ""
 
@@ -1247,7 +1251,7 @@ msgstr ""
 msgid "Could not load bots. Reload to try again."
 msgstr ""
 
-#: src/components/computer/TerminalApp.tsx:87
+#: src/components/computer/TerminalApp.tsx:97
 msgid "Could not load commands"
 msgstr ""
 
@@ -1290,7 +1294,7 @@ msgstr "无法加载更新状态"
 msgid "Could not load voice settings"
 msgstr "无法加载语音设置"
 
-#: src/components/computer/FilesApp.tsx:85
+#: src/components/computer/FilesApp.tsx:113
 msgid "Could not open file"
 msgstr ""
 
@@ -1298,7 +1302,7 @@ msgstr ""
 msgid "Could not open local settings. Start the local server and create its owner account, then try again."
 msgstr ""
 
-#: src/components/computer/TerminalApp.tsx:138
+#: src/components/computer/TerminalApp.tsx:148
 msgid "Could not open terminal"
 msgstr ""
 
@@ -1448,7 +1452,7 @@ msgstr "无法更新反应"
 msgid "Could not update the default memory scope"
 msgstr "无法更新默认记忆范围"
 
-#: src/components/computer/FilesApp.tsx:116
+#: src/components/computer/FilesApp.tsx:144
 msgid "Could not upload file"
 msgstr ""
 
@@ -1732,7 +1736,7 @@ msgstr "还没有账户？"
 msgid "Done"
 msgstr "完成"
 
-#: src/components/computer/FilesApp.tsx:155
+#: src/components/computer/FilesApp.tsx:183
 #: src/pages/Artifacts.tsx:892
 msgid "Download"
 msgstr ""
@@ -1741,7 +1745,7 @@ msgstr ""
 #. placeholder {0}: props.name
 #: src/components/ArtifactFileCard.tsx:87
 #: src/components/ArtifactFileCard.tsx:88
-#: src/components/computer/FilesApp.tsx:221
+#: src/components/computer/FilesApp.tsx:249
 msgid "Download {0}"
 msgstr "下载 {0}"
 
@@ -2195,6 +2199,10 @@ msgstr "语言"
 
 #: src/components/DesktopUpdates.tsx:114
 msgid "Later"
+msgstr ""
+
+#: src/components/computer/TerminalApp.tsx:77
+msgid "Launched {app}"
 msgstr ""
 
 #: src/pages/MessagingSettingsOverlay.tsx:249
@@ -2797,6 +2805,10 @@ msgstr "待办"
 #: src/pages/Onboarding.tsx:420
 msgid "OpenAI-compatible server URL"
 msgstr "OpenAI 兼容服务器 URL"
+
+#: src/components/computer/TerminalApp.tsx:76
+msgid "Opened {path}"
+msgstr ""
 
 #: src/pages/Shell.tsx:6139
 msgid "Opened its thread."
@@ -3478,7 +3490,7 @@ msgstr ""
 msgid "Shared documents"
 msgstr "共享文档"
 
-#: src/components/computer/TerminalApp.tsx:48
+#: src/components/computer/TerminalApp.tsx:49
 msgid "Shell"
 msgstr ""
 
@@ -3924,7 +3936,7 @@ msgstr ""
 msgid "Updating…"
 msgstr "正在更新…"
 
-#: src/components/computer/FilesApp.tsx:166
+#: src/components/computer/FilesApp.tsx:194
 #: src/pages/shell/avatar-studio-popover.tsx:177
 msgid "Upload"
 msgstr "上传"
@@ -4051,6 +4063,10 @@ msgstr "Bot 应在哪里运行？"
 #: src/pages/CallView.tsx:251
 msgid "Working…"
 msgstr "处理中…"
+
+#: src/components/computer/TerminalApp.tsx:74
+msgid "Wrote {path}"
+msgstr ""
 
 #: src/pages/Shell.tsx:5701
 msgid "Yesterday"

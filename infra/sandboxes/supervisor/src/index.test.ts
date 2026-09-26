@@ -148,6 +148,7 @@ describe("sandbox supervisor HTTP boundary", () => {
       ["POST", "/computers/id/files"],
       ["GET", "/computers/id/screen"],
       ["POST", "/computers/id/screen-mode"],
+      ["POST", "/computers/id/terminal"],
       ["DELETE", "/computers/id/screen"],
       ["POST", "/computers/id/input"],
       ["POST", "/computers/id/stop"],
@@ -213,6 +214,18 @@ describe("sandbox supervisor HTTP boundary", () => {
     expect(supervisorRequestBodyLimit("POST", "/computers/id/files/extra")).toBe(
       MAX_SUPERVISOR_REQUEST_BYTES,
     );
+  });
+
+  it("rejects terminal requests without a well-formed control token before touching Docker", async () => {
+    for (const body of [{}, { controlToken: "bad token" }, { controlToken: "a".repeat(129) }]) {
+      const response = await supervisorApp.request("/computers/id/terminal", {
+        method: "POST",
+        headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      expect(response.status, JSON.stringify(body)).toBeGreaterThanOrEqual(400);
+      expect(response.ok).toBe(false);
+    }
   });
 
   it("rejects a provision request whose identity headers do not match its body", async () => {

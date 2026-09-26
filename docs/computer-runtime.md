@@ -41,7 +41,7 @@ Human input and agent input may coexist on distinct Team screens. “Take contro
 
 ## Terminal and files
 
-The web and desktop computer view opens a terminal and a file browser from a dock over the screen.
+The web and desktop computer view opens a terminal and a file browser from a dock over the screen. The dock's browser button hides those windows, keeping their sessions, so the whole screen is visible again.
 
 **Terminal**
 - Without control, the terminal replays the bot's recent `shell` commands. Each command is recorded as a `computer.command` event, holding the redacted command and the tail of its output.

@@ -651,6 +651,10 @@ msgstr "Brain label"
 msgid "Browse MCP servers"
 msgstr "Browse MCP servers"
 
+#: src/components/computer/ComputerWorkspace.tsx:99
+msgid "Browser"
+msgstr "Browser"
+
 #: src/pages/CallView.tsx:241
 msgid "Call"
 msgstr "Call"
@@ -814,7 +818,7 @@ msgstr "Client secret"
 msgid "Close"
 msgstr "Close"
 
-#: src/components/computer/ComputerWorkspace.tsx:171
+#: src/components/computer/ComputerWorkspace.tsx:201
 msgid "Close {title}"
 msgstr "Close {title}"
 
@@ -1242,7 +1246,7 @@ msgstr "Could not load artifacts."
 msgid "Could not load bots. Reload to try again."
 msgstr "Could not load bots. Reload to try again."
 
-#: src/components/computer/TerminalApp.tsx:83
+#: src/components/computer/TerminalApp.tsx:79
 msgid "Could not load commands"
 msgstr "Could not load commands"
 
@@ -1293,7 +1297,7 @@ msgstr "Could not open file"
 msgid "Could not open local settings. Start the local server and create its owner account, then try again."
 msgstr "Could not open local settings. Start the local server and create its owner account, then try again."
 
-#: src/components/computer/TerminalApp.tsx:125
+#: src/components/computer/TerminalApp.tsx:121
 msgid "Could not open terminal"
 msgstr "Could not open terminal"
 
@@ -1911,7 +1915,7 @@ msgstr "Failed."
 msgid "Failure handling"
 msgstr "Failure handling"
 
-#: src/components/computer/ComputerWorkspace.tsx:42
+#: src/components/computer/ComputerWorkspace.tsx:46
 msgid "Files"
 msgstr "Files"
 
@@ -3705,7 +3709,7 @@ msgstr "Teams message"
 msgid "Teams not enabled"
 msgstr "Teams not enabled"
 
-#: src/components/computer/ComputerWorkspace.tsx:40
+#: src/components/computer/ComputerWorkspace.tsx:44
 msgid "Terminal"
 msgstr "Terminal"
 

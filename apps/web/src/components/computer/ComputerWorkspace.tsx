@@ -1,7 +1,7 @@
 import { useLingui } from "@lingui/react/macro";
 import type { ComputerStatus } from "@rakazo/contracts";
 import { Button, cn } from "@rakazo/ui-web";
-import { Folder, SquareTerminal, X } from "lucide-react";
+import { Folder, Globe, SquareTerminal, X } from "lucide-react";
 import type { PointerEvent, ReactNode, RefObject } from "react";
 import { lazy, Suspense, useCallback, useRef, useState } from "react";
 import { FilesApp } from "./FilesApp";
@@ -14,7 +14,8 @@ type Position = { x: number; y: number };
 
 /**
  * The computer overlay body: the live screen fills the desktop, and a dock opens the
- * terminal and file browser as movable windows on top of it.
+ * terminal and file browser as movable windows on top of it. The browser button tucks the
+ * windows away (keeping their sessions) to reveal the screen.
  */
 export function ComputerWorkspace({
   botId,
@@ -33,8 +34,11 @@ export function ComputerWorkspace({
   const { t } = useLingui();
   const desktop = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState<App[]>([]);
+  const [collapsed, setCollapsed] = useState(false);
   const [positions, setPositions] = useState<Partial<Record<App, Position>>>({});
   const running = computer?.state === "running";
+  const hasScreen = computer?.kind !== "desktop";
+  const screenVisible = collapsed || open.length === 0;
   const apps: Array<{ id: App; label: string; icon: ReactNode }> = [
     ...(computer?.terminalAvailable
       ? [{ id: "terminal" as const, label: t`Terminal`, icon: <SquareTerminal /> }]
@@ -42,10 +46,16 @@ export function ComputerWorkspace({
     { id: "files", label: t`Files`, icon: <Folder /> },
   ];
 
-  const toggle = (app: App) =>
+  const toggle = (app: App) => {
+    if (collapsed) {
+      setCollapsed(false);
+      setOpen((current) => [...current.filter((item) => item !== app), app]);
+      return;
+    }
     setOpen((current) =>
       current.includes(app) ? current.filter((item) => item !== app) : [...current, app],
     );
+  };
   const focus = (app: App) =>
     setOpen((current) => [...current.filter((item) => item !== app), app]);
   const move = useCallback(
@@ -64,6 +74,7 @@ export function ComputerWorkspace({
           <WorkspaceWindow
             key={app.id}
             title={app.label}
+            hidden={collapsed}
             bounds={desktop}
             position={positions[app.id] ?? defaultPosition(app.id, desktop.current)}
             zIndex={10 + open.indexOf(app.id)}
@@ -81,14 +92,26 @@ export function ComputerWorkspace({
           </WorkspaceWindow>
         ))}
       <nav className="absolute bottom-4 left-1/2 z-40 flex -translate-x-1/2 gap-1 rounded-2xl border border-border bg-card/90 p-1.5 shadow-lg backdrop-blur">
+        {hasScreen ? (
+          <Button
+            variant="ghost"
+            size="icon-lg"
+            aria-label={t`Browser`}
+            aria-pressed={screenVisible}
+            className={cn("rounded-xl", screenVisible && "bg-accent")}
+            onClick={() => setCollapsed((current) => (open.length ? !current : false))}
+          >
+            <Globe />
+          </Button>
+        ) : null}
         {apps.map((app) => (
           <Button
             key={app.id}
             variant="ghost"
             size="icon-lg"
             aria-label={app.label}
-            aria-pressed={open.includes(app.id)}
-            className={cn("rounded-xl", open.includes(app.id) && "bg-accent")}
+            aria-pressed={!collapsed && open.includes(app.id)}
+            className={cn("rounded-xl", !collapsed && open.includes(app.id) && "bg-accent")}
             onClick={() => toggle(app.id)}
           >
             {app.icon}
@@ -110,6 +133,7 @@ function defaultPosition(app: App, desktop: HTMLDivElement | null): Position {
 
 function WorkspaceWindow({
   title,
+  hidden,
   bounds,
   position,
   zIndex,
@@ -119,6 +143,8 @@ function WorkspaceWindow({
   children,
 }: {
   title: string;
+  /** Kept mounted while hidden so a terminal session or open folder survives. */
+  hidden: boolean;
   bounds: RefObject<HTMLDivElement | null>;
   position: Position;
   zIndex: number;
@@ -151,7 +177,11 @@ function WorkspaceWindow({
   return (
     <section
       aria-label={title}
-      className="absolute flex h-[min(420px,70%)] w-[min(560px,calc(100%-32px))] flex-col overflow-hidden rounded-xl border border-border bg-card shadow-2xl"
+      hidden={hidden}
+      className={cn(
+        "absolute h-[min(420px,70%)] w-[min(560px,calc(100%-32px))] flex-col overflow-hidden rounded-xl border border-border bg-card shadow-2xl",
+        hidden ? "hidden" : "flex",
+      )}
       style={{ left: position.x, top: position.y, zIndex }}
       onPointerDownCapture={onFocus}
     >

@@ -651,6 +651,10 @@ msgstr ""
 msgid "Browse MCP servers"
 msgstr ""
 
+#: src/components/computer/ComputerWorkspace.tsx:99
+msgid "Browser"
+msgstr ""
+
 #: src/pages/CallView.tsx:241
 msgid "Call"
 msgstr "통화"
@@ -814,7 +818,7 @@ msgstr ""
 msgid "Close"
 msgstr "닫기"
 
-#: src/components/computer/ComputerWorkspace.tsx:171
+#: src/components/computer/ComputerWorkspace.tsx:201
 msgid "Close {title}"
 msgstr ""
 
@@ -1242,7 +1246,7 @@ msgstr ""
 msgid "Could not load bots. Reload to try again."
 msgstr ""
 
-#: src/components/computer/TerminalApp.tsx:83
+#: src/components/computer/TerminalApp.tsx:79
 msgid "Could not load commands"
 msgstr ""
 
@@ -1293,7 +1297,7 @@ msgstr ""
 msgid "Could not open local settings. Start the local server and create its owner account, then try again."
 msgstr ""
 
-#: src/components/computer/TerminalApp.tsx:125
+#: src/components/computer/TerminalApp.tsx:121
 msgid "Could not open terminal"
 msgstr ""
 
@@ -1911,7 +1915,7 @@ msgstr "실패했습니다."
 msgid "Failure handling"
 msgstr "실패했을 때 처리"
 
-#: src/components/computer/ComputerWorkspace.tsx:42
+#: src/components/computer/ComputerWorkspace.tsx:46
 msgid "Files"
 msgstr ""
 
@@ -3705,7 +3709,7 @@ msgstr "Teams 메시지"
 msgid "Teams not enabled"
 msgstr ""
 
-#: src/components/computer/ComputerWorkspace.tsx:40
+#: src/components/computer/ComputerWorkspace.tsx:44
 msgid "Terminal"
 msgstr ""
 

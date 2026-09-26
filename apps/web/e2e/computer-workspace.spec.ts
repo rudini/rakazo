@@ -56,6 +56,15 @@ test("the computer workspace opens files and the terminal over the screen", asyn
   await expect(page.getByTestId("computer-terminal")).toBeVisible();
   await captureScreenshot(page, testInfo, "computer-workspace");
 
+  // The browser button tucks the windows away without closing their sessions.
+  const browser = page.getByRole("button", { name: "Browser", exact: true });
+  await browser.click();
+  await expect(browser).toHaveAttribute("aria-pressed", "true");
+  await expect(files).toBeHidden();
+  await expect(page.getByRole("region", { name: "Terminal" })).toBeHidden();
+  await page.getByRole("button", { name: "Files", exact: true }).click();
+  await expect(files.getByText("Quarterly numbers checked.")).toBeVisible();
+
   await page.getByRole("button", { name: "Close Files" }).click();
   await expect(files).toBeHidden();
 });

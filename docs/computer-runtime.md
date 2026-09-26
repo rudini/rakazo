@@ -47,13 +47,14 @@ The web and desktop computer view opens a terminal and a file browser from a doc
 - The Activity view always shows the bot's recent `shell` commands, live and from history. Each command is recorded as a `computer.command` event, holding the redacted command and the tail of its output. The bot can still run commands while the user holds control, so the feed never goes away.
 - A user holding control also gets a Shell tab with an interactive shell. It starts on first use and stays connected across tab switches. `computer.terminalUrl` starts a small PTY server in the computer beside the screen gateway.
   - It is bound to the display's control token and reached through the same sealed capability and gateway as the control screen.
-  - It runs as the computer's workspace user (never root), with the same environment as the bot's `shell` tool. Docker execs inherit the container's non-root user; E2B, Daytona, and Box use the same command runner as `shell`.
+  - It runs as the computer's workspace user (never root), with the same environment as the bot's `shell` tool. Docker execs inherit the container's non-root user; E2B, Daytona, and Box use the same command runner as `shell`. When the computer runs as a host uid without a passwd entry (Docker on macOS), the terminal names it `rakazo` through nss_wrapper for its own session, so prompts and `whoami` work; `/etc/passwd` stays unchanged.
   - Releasing control, expiry, or screen teardown stops it and disconnects every shell.
 - Providers opt in through `SandboxProvider.connectTerminal`. Docker, E2B, Daytona, and Box support it. Host (`desktop`) computers never expose a browser shell.
 - The fake provider serves an emulated shell from a loopback websocket gateway that speaks the same frame protocol. Tests can then drive the browser terminal through the sealed capability and web proxy without exposing a host shell.
 
 **Files**
 - Browsing and text preview work on stopped computers through the stored workspace.
+- While the Files window is visible, the open folder refreshes every few seconds and after each bot command, so changes from a shell or the bot appear without reopening.
 - Download needs a running computer.
 - Upload also needs control. Uploads land under the bot's workspace path and are capped at the attachment size limit.
 

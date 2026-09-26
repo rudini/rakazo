@@ -3,10 +3,43 @@
  * websocket to one Unix socket connection, which gets its own login shell. Output is raw
  * bytes; input arrives as `[kind:u8][length:u32be][payload]` frames (see contracts/terminal).
  */
-export const TERMINAL_SERVER_PROGRAM = `import fcntl, os, pty, select, signal, socket, struct, sys, termios
+export const TERMINAL_SERVER_PROGRAM = `import fcntl, glob, os, pty, pwd, select, signal, socket, struct, sys, tempfile, termios
 
 path, cwd = sys.argv[1], sys.argv[2]
 MAX_FRAME = 1 << 20
+
+def identity(env):
+    # Docker on macOS runs the computer as the host uid (e.g. 501), which has no passwd entry.
+    # Name it for the shell through nss_wrapper when available, without touching /etc/passwd.
+    try:
+        pwd.getpwuid(os.getuid())
+        return env, []
+    except KeyError:
+        pass
+    env = dict(env, USER="rakazo", LOGNAME="rakazo")
+    libraries = glob.glob("/usr/lib/*/libnss_wrapper.so") + glob.glob("/usr/lib/libnss_wrapper.so")
+    if not libraries:
+        return env, []
+    uid, gid, home = os.getuid(), os.getgid(), env.get("HOME", "/")
+    with open("/etc/passwd") as source:
+        passwd = source.read()
+    with open("/etc/group") as source:
+        group = source.read()
+    passwd += "rakazo:x:%d:%d:Rakazo:%s:/bin/bash\\n" % (uid, gid, home)
+    if not any(line.split(":")[2:3] == [str(gid)] for line in group.splitlines()):
+        group += "rakazo:x:%d:\\n" % gid
+    names = {}
+    for kind, content in (("passwd", passwd), ("group", group)):
+        handle, name = tempfile.mkstemp(prefix="rakazo-terminal-" + kind + "-")
+        with os.fdopen(handle, "w") as target:
+            target.write(content)
+        names[kind] = name
+    return dict(
+        env,
+        LD_PRELOAD=libraries[0],
+        NSS_WRAPPER_PASSWD=names["passwd"],
+        NSS_WRAPPER_GROUP=names["group"],
+    ), list(names.values())
 
 def write_all(fd, data):
     while data:
@@ -14,13 +47,13 @@ def write_all(fd, data):
 
 def serve(conn):
     signal.signal(signal.SIGCHLD, signal.SIG_DFL)
+    env, temporary = identity(dict(os.environ, TERM="xterm-256color"))
     pid, fd = pty.fork()
     if pid == 0:
         try:
             os.chdir(cwd)
         except OSError:
             os.chdir(os.path.expanduser("~"))
-        env = dict(os.environ, TERM="xterm-256color")
         shell = env.get("SHELL") or "/bin/bash"
         os.execvpe(shell, [shell, "-l"], env)
     pending = b""
@@ -64,6 +97,11 @@ def serve(conn):
             os.waitpid(pid, 0)
         except OSError:
             pass
+        for name in temporary:
+            try:
+                os.unlink(name)
+            except OSError:
+                pass
 
 try:
     os.unlink(path)

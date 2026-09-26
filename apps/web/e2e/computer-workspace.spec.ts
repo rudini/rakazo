@@ -55,6 +55,15 @@ test("the computer workspace browses, uploads, and downloads files over the scre
   await expect(files.getByRole("button", { name: /^q3\.txt/ })).toBeVisible();
   await files.getByRole("button", { name: "Back" }).click();
   await expect(files.getByText("~/", { exact: true })).toBeVisible();
+  // Changes made elsewhere (a shell, the bot) appear without reopening the window.
+  await rpc(page, "computer/uploadFile", {
+    botId,
+    path: "made-in-shell.txt",
+    contentBase64: Buffer.from("x").toString("base64"),
+  });
+  await expect(files.getByRole("button", { name: /^made-in-shell\.txt/ })).toBeVisible({
+    timeout: 10_000,
+  });
 
   await files.locator('input[type="file"]').setInputFiles({
     name: "notes.txt",

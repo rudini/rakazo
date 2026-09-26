@@ -87,7 +87,12 @@ export function ComputerWorkspace({
                 <TerminalApp botId={botId} canUseShell={hasControl && running} />
               </Suspense>
             ) : (
-              <FilesApp botId={botId} running={running} canUpload={hasControl && running} />
+              <FilesApp
+                botId={botId}
+                running={running}
+                canUpload={hasControl && running}
+                visible={!collapsed}
+              />
             )}
           </WorkspaceWindow>
         ))}

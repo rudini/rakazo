@@ -26,6 +26,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     novnc \
     websockify \
     python3 \
+    libnss-wrapper \
     ca-certificates \
     procps \
     bash \

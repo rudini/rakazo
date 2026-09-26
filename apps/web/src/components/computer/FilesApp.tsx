@@ -9,6 +9,7 @@ import {
   formatSize,
   parentPath,
   sortEntries,
+  subscribeComputerCommands,
 } from "../../lib/computer-workspace";
 import { isFileDrag, readFileAsBase64 } from "../../lib/pending-attachments";
 import { rpc } from "../../lib/rpc";
@@ -18,6 +19,9 @@ type Entry = ComputerFileEntry;
 type Preview =
   | { path: string; kind: "text"; content: string }
   | { path: string; kind: "image"; bytes: Uint8Array; mimeType: string };
+
+// A terminal session or the bot can change files at any time; the open folder follows along.
+const FILES_REFRESH_MS = 3_000;
 
 const IMAGE_TYPES: Record<string, string> = {
   gif: "image/gif",
@@ -32,10 +36,13 @@ export function FilesApp({
   botId,
   running,
   canUpload,
+  visible,
 }: {
   botId: string;
   running: boolean;
   canUpload: boolean;
+  /** Refresh only while the window is on screen. */
+  visible: boolean;
 }) {
   const { t } = useLingui();
   const [path, setPath] = useState("");
@@ -63,6 +70,27 @@ export function FilesApp({
   useEffect(() => {
     void load("");
   }, [load]);
+
+  useEffect(() => {
+    if (!visible || preview) return;
+    let cancelled = false;
+    const refresh = async () => {
+      if (document.visibilityState !== "visible") return;
+      const listed = await rpc.computer.files({ botId, path }).catch(() => null);
+      if (cancelled || !listed) return;
+      const next = sortEntries(listed);
+      setEntries((current) => (JSON.stringify(current) === JSON.stringify(next) ? current : next));
+    };
+    const timer = window.setInterval(() => void refresh(), FILES_REFRESH_MS);
+    const unsubscribe = subscribeComputerCommands((eventBotId, command) => {
+      if (eventBotId === botId && command.status === "done") void refresh();
+    });
+    return () => {
+      cancelled = true;
+      window.clearInterval(timer);
+      unsubscribe();
+    };
+  }, [botId, path, preview, visible]);
 
   async function open(entry: Entry) {
     if (entry.kind === "dir") return load(entry.path);

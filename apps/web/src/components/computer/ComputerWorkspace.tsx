@@ -84,7 +84,7 @@ export function ComputerWorkspace({
           >
             {app.id === "terminal" ? (
               <Suspense fallback={null}>
-                <TerminalApp botId={botId} interactive={hasControl && running} />
+                <TerminalApp botId={botId} canUseShell={hasControl && running} />
               </Suspense>
             ) : (
               <FilesApp botId={botId} running={running} canUpload={hasControl && running} />

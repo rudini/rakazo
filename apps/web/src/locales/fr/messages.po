@@ -207,6 +207,7 @@ msgstr "Actif"
 msgid "Active model"
 msgstr "Modèle actif"
 
+#: src/components/computer/TerminalApp.tsx:47
 #: src/pages/Shell.tsx:2712
 #: src/pages/Shell.tsx:2714
 msgid "Activity"
@@ -1246,7 +1247,7 @@ msgstr "Impossible de charger les artefacts."
 msgid "Could not load bots. Reload to try again."
 msgstr "Impossible de charger les bots. Rechargez pour réessayer."
 
-#: src/components/computer/TerminalApp.tsx:79
+#: src/components/computer/TerminalApp.tsx:87
 msgid "Could not load commands"
 msgstr ""
 
@@ -1297,7 +1298,7 @@ msgstr ""
 msgid "Could not open local settings. Start the local server and create its owner account, then try again."
 msgstr "Impossible d'ouvrir les paramètres locaux. Démarrez le serveur local et créez le compte du propriétaire, puis réessayez."
 
-#: src/components/computer/TerminalApp.tsx:121
+#: src/components/computer/TerminalApp.tsx:138
 msgid "Could not open terminal"
 msgstr ""
 
@@ -3476,6 +3477,10 @@ msgstr "Conversation partagée avec 2 à 6 bots. Ils répondent tous dans le mê
 #: src/pages/KnowledgeSection.tsx:66
 msgid "Shared documents"
 msgstr "Documents partagés"
+
+#: src/components/computer/TerminalApp.tsx:48
+msgid "Shell"
+msgstr ""
 
 #: src/pages/Shell.tsx:3299
 #: src/pages/Shell.tsx:3360

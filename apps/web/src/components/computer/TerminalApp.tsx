@@ -2,9 +2,10 @@ import "@xterm/xterm/css/xterm.css";
 import { useLingui } from "@lingui/react/macro";
 import type { ComputerCommand } from "@rakazo/contracts";
 import { encodeTerminalInput, encodeTerminalResize, foldComputerCommands } from "@rakazo/contracts";
+import { cn, Tabs, TabsList, TabsTrigger } from "@rakazo/ui-web";
 import { FitAddon } from "@xterm/addon-fit";
 import { Terminal } from "@xterm/xterm";
-import { useEffect, useRef, useState } from "react";
+import { type RefObject, useEffect, useRef, useState } from "react";
 import {
   formatComputerCommand,
   mergeComputerCommand,
@@ -13,55 +14,62 @@ import {
 } from "../../lib/computer-workspace";
 import { rpc } from "../../lib/rpc";
 
+type View = "activity" | "shell";
+
 /**
- * Holding control opens an interactive shell; otherwise the terminal replays the bot's own
- * shell commands. The two never overlap: the bot cannot run while the user holds control.
+ * The terminal always shows the bot's own shell commands. A user holding control can also
+ * open an interactive shell; it starts on first use and stays connected across tab switches.
  */
 export default function TerminalApp({
   botId,
-  interactive,
+  canUseShell,
 }: {
   botId: string;
-  interactive: boolean;
+  canUseShell: boolean;
 }) {
   const { t } = useLingui();
+  const [view, setView] = useState<View>("activity");
+  const [shellOpened, setShellOpened] = useState(false);
+  const active = canUseShell ? view : "activity";
+
+  return (
+    <div className="flex h-full min-h-0 flex-col bg-background">
+      {canUseShell ? (
+        <Tabs
+          value={active}
+          onValueChange={(value) => {
+            setView(value as View);
+            if (value === "shell") setShellOpened(true);
+          }}
+          className="border-b border-border px-2 py-1.5"
+        >
+          <TabsList>
+            <TabsTrigger value="activity">{t`Activity`}</TabsTrigger>
+            <TabsTrigger value="shell">{t`Shell`}</TabsTrigger>
+          </TabsList>
+        </Tabs>
+      ) : null}
+      <ActivityTerminal botId={botId} hidden={active !== "activity"} />
+      {canUseShell && shellOpened ? (
+        <ShellTerminal botId={botId} hidden={active !== "shell"} />
+      ) : null}
+    </div>
+  );
+}
+
+function ActivityTerminal({ botId, hidden }: { botId: string; hidden: boolean }) {
+  const { t } = useLingui();
   const host = useRef<HTMLDivElement>(null);
-  const [terminal, setTerminal] = useState<Terminal | null>(null);
+  const terminal = useXterm(host, false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!host.current) return;
-    const term = new Terminal({
-      convertEol: false,
-      cursorBlink: interactive,
-      disableStdin: !interactive,
-      fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
-      fontSize: 13,
-      scrollback: 5000,
-      theme: terminalTheme(),
-    });
-    const fit = new FitAddon();
-    term.loadAddon(fit);
-    term.open(host.current);
-    fit.fit();
-    const observer = new ResizeObserver(() => fit.fit());
-    observer.observe(host.current);
-    setTerminal(term);
-    return () => {
-      observer.disconnect();
-      term.dispose();
-      setTerminal(null);
-    };
-  }, [interactive]);
-
-  useEffect(() => {
-    if (!terminal || interactive) return;
+    if (!terminal) return;
     let commands: ComputerCommand[] = [];
     let cancelled = false;
-    const render = () => {
-      terminal.reset();
-      for (const command of commands) terminal.write(formatComputerCommand(command));
-    };
+    // Writes are queued, so clear in-band (ESC c) rather than with reset(), which runs
+    // immediately and would let an earlier queued render land after it.
+    const render = () => terminal.write(`\x1bc${commands.map(formatComputerCommand).join("")}`);
     const unsubscribe = subscribeComputerCommands((eventBotId, command) => {
       if (eventBotId !== botId) return;
       commands = mergeComputerCommand(commands, command);
@@ -82,10 +90,19 @@ export default function TerminalApp({
       cancelled = true;
       unsubscribe();
     };
-  }, [terminal, interactive, botId, t]);
+  }, [terminal, botId, t]);
+
+  return <TerminalPane host={host} error={error} hidden={hidden} testId="computer-terminal" />;
+}
+
+function ShellTerminal({ botId, hidden }: { botId: string; hidden: boolean }) {
+  const { t } = useLingui();
+  const host = useRef<HTMLDivElement>(null);
+  const terminal = useXterm(host, true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!terminal || !interactive) return;
+    if (!terminal) return;
     let socket: WebSocket | null = null;
     let cancelled = false;
     const disposers: Array<{ dispose(): void }> = [];
@@ -125,18 +142,65 @@ export default function TerminalApp({
       for (const disposer of disposers) disposer.dispose();
       socket?.close();
     };
-  }, [terminal, interactive, botId, t]);
+  }, [terminal, botId, t]);
 
+  useEffect(() => {
+    if (!hidden) terminal?.focus();
+  }, [hidden, terminal]);
+
+  return <TerminalPane host={host} error={error} hidden={hidden} testId="computer-shell" />;
+}
+
+function TerminalPane({
+  host,
+  error,
+  hidden,
+  testId,
+}: {
+  host: RefObject<HTMLDivElement | null>;
+  error: string | null;
+  hidden: boolean;
+  testId: string;
+}) {
   return (
-    <div className="flex h-full min-h-0 flex-col bg-background">
+    <div className={cn("min-h-0 flex-1 flex-col", hidden ? "hidden" : "flex")}>
       {error ? (
         <div role="alert" className="px-3 py-2 text-[13px] text-destructive">
           {error}
         </div>
       ) : null}
-      <div ref={host} data-testid="computer-terminal" className="min-h-0 flex-1 px-2 py-1.5" />
+      <div ref={host} data-testid={testId} className="min-h-0 flex-1 px-2 py-1.5" />
     </div>
   );
+}
+
+function useXterm(host: RefObject<HTMLDivElement | null>, interactive: boolean) {
+  const [terminal, setTerminal] = useState<Terminal | null>(null);
+  useEffect(() => {
+    if (!host.current) return;
+    const term = new Terminal({
+      cursorBlink: interactive,
+      disableStdin: !interactive,
+      fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
+      fontSize: 13,
+      scrollback: 5000,
+      theme: terminalTheme(),
+    });
+    const fit = new FitAddon();
+    term.loadAddon(fit);
+    term.open(host.current);
+    fit.fit();
+    // Hidden panes report no size; fitting then is a no-op until they are shown again.
+    const observer = new ResizeObserver(() => fit.fit());
+    observer.observe(host.current);
+    setTerminal(term);
+    return () => {
+      observer.disconnect();
+      term.dispose();
+      setTerminal(null);
+    };
+  }, [host, interactive]);
+  return terminal;
 }
 
 function terminalTheme() {

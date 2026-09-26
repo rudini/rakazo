@@ -1,7 +1,29 @@
-import { expect, test } from "@playwright/test";
+import { readFile } from "node:fs/promises";
+import { expect, type Page, test } from "@playwright/test";
 import { activeBotId, captureScreenshot, completeOnboarding, rpc, signup } from "./helpers";
 
-test("the computer workspace opens files and the terminal over the screen", async ({
+async function openComputer(page: Page) {
+  const screenUrl = "https://screen.example/vnc.html";
+  await page.route("https://screen.example/**", (route) =>
+    route.fulfill({
+      contentType: "text/html",
+      body: "<!doctype html><title>Test desktop</title><body style='margin:0;background:#3a4a5a'>",
+    }),
+  );
+  await page.route("**/rpc/computer/screenUrl", (route) =>
+    route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({ json: { url: screenUrl } }),
+    }),
+  );
+  await page.getByTitle("Agent computer").click();
+  const preview = page.getByTestId("computer-preview");
+  await preview.hover();
+  await preview.getByTestId("computer-preview-open").click();
+  await expect(page.getByRole("button", { name: "Close computer" })).toBeVisible();
+}
+
+test("the computer workspace browses, uploads, and downloads files over the screen", async ({
   page,
 }, testInfo) => {
   await signup(page, `workspace-${Date.now()}@rakazo.test`, "password12", "Workspace");
@@ -21,38 +43,40 @@ test("the computer workspace opens files and the terminal over the screen", asyn
     .toBe(true);
   await rpc(page, "computer/uploadFile", {
     botId,
-    path: "notes.txt",
-    contentBase64: Buffer.from("Quarterly numbers checked.\n").toString("base64"),
+    path: "reports/q3.txt",
+    contentBase64: Buffer.from("Q3 draft\n").toString("base64"),
   });
-
-  const screenUrl = "https://screen.example/vnc.html";
-  await page.route("https://screen.example/**", (route) =>
-    route.fulfill({
-      contentType: "text/html",
-      body: "<!doctype html><title>Test desktop</title><body style='margin:0;background:#3a4a5a'>",
-    }),
-  );
-  await page.route("**/rpc/computer/screenUrl", (route) =>
-    route.fulfill({
-      contentType: "application/json",
-      body: JSON.stringify({ json: { url: screenUrl } }),
-    }),
-  );
-
-  await page.getByTitle("Agent computer").click();
-  const preview = page.getByTestId("computer-preview");
-  await preview.hover();
-  await preview.getByTestId("computer-preview-open").click();
-  await expect(page.getByRole("button", { name: "Close computer" })).toBeVisible();
+  await openComputer(page);
 
   await page.getByRole("button", { name: "Files", exact: true }).click();
   const files = page.getByRole("region", { name: "Files" });
+  await files.getByRole("button", { name: /^reports/ }).click();
+  await expect(files.getByText("~/reports", { exact: true })).toBeVisible();
+  await expect(files.getByRole("button", { name: /^q3\.txt/ })).toBeVisible();
+  await files.getByRole("button", { name: "Back" }).click();
+  await expect(files.getByText("~/", { exact: true })).toBeVisible();
+
+  await files.locator('input[type="file"]').setInputFiles({
+    name: "notes.txt",
+    mimeType: "text/plain",
+    buffer: Buffer.from("Quarterly numbers checked.\n"),
+  });
   await files.getByRole("button", { name: /^notes\.txt/ }).click();
   await expect(files.getByText("Quarterly numbers checked.")).toBeVisible();
-  await expect(files.getByRole("button", { name: "Download" })).toBeVisible();
+  const download = page.waitForEvent("download");
+  await files.getByRole("button", { name: "Download" }).click();
+  const saved = await download;
+  expect(saved.suggestedFilename()).toBe("notes.txt");
+  expect(await readFile((await saved.path())!, "utf8")).toBe("Quarterly numbers checked.\n");
 
   await page.getByRole("button", { name: "Terminal", exact: true }).click();
-  await expect(page.getByRole("region", { name: "Terminal" })).toBeVisible();
+  const terminalWindow = page.getByRole("region", { name: "Terminal" });
+  await expect(page.getByTestId("computer-terminal")).toBeVisible();
+  // Holding control adds an interactive shell beside the bot's activity.
+  await terminalWindow.getByRole("tab", { name: "Shell" }).click();
+  await expect(page.getByTestId("computer-shell")).toBeVisible();
+  await expect(page.getByTestId("computer-terminal")).toBeHidden();
+  await terminalWindow.getByRole("tab", { name: "Activity" }).click();
   await expect(page.getByTestId("computer-terminal")).toBeVisible();
   await captureScreenshot(page, testInfo, "computer-workspace");
 
@@ -67,4 +91,43 @@ test("the computer workspace opens files and the terminal over the screen", asyn
 
   await page.getByRole("button", { name: "Close Files" }).click();
   await expect(files).toBeHidden();
+});
+
+test("the terminal shows the bot's shell commands live and after reopening", async ({
+  page,
+}, testInfo) => {
+  await signup(page, `terminal-feed-${Date.now()}@rakazo.test`, "password12", "Terminal Feed");
+  await completeOnboarding(page);
+  const botId = activeBotId(page);
+  await rpc(page, "computer/boot", { botId });
+  await openComputer(page);
+
+  await page.getByRole("button", { name: "Terminal", exact: true }).click();
+  const terminal = page.getByTestId("computer-terminal");
+  await expect(terminal).toBeVisible();
+  // Poll the send: the intro run may still be finishing when the test starts.
+  await expect
+    .poll(
+      () =>
+        rpc(page, "threads/send", {
+          botId,
+          text: "run the shell command echo terminal-feed-ok",
+        }).then(
+          () => true,
+          () => false,
+        ),
+      { timeout: 30_000 },
+    )
+    .toBe(true);
+  await expect(terminal).toContainText("$ echo terminal-feed-ok", { timeout: 30_000 });
+  await expect(terminal).toContainText(/terminal-feed-ok\s*$/m);
+  // A command's running and done events render as one entry.
+  await expect
+    .poll(async () => ((await terminal.textContent()) ?? "").split("$ echo").length - 1)
+    .toBe(1);
+  await captureScreenshot(page, testInfo, "computer-terminal-bot-feed");
+
+  await page.getByRole("button", { name: "Close Terminal" }).click();
+  await page.getByRole("button", { name: "Terminal", exact: true }).click();
+  await expect(page.getByTestId("computer-terminal")).toContainText("$ echo terminal-feed-ok");
 });

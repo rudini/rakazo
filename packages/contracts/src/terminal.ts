@@ -5,7 +5,7 @@
 export const TERMINAL_INPUT = 0;
 export const TERMINAL_RESIZE = 1;
 
-export function encodeTerminalFrame(kind: number, payload: Uint8Array): Uint8Array {
+export function encodeTerminalFrame(kind: number, payload: Uint8Array): Uint8Array<ArrayBuffer> {
   const frame = new Uint8Array(5 + payload.length);
   const view = new DataView(frame.buffer);
   view.setUint8(0, kind);
@@ -14,11 +14,11 @@ export function encodeTerminalFrame(kind: number, payload: Uint8Array): Uint8Arr
   return frame;
 }
 
-export function encodeTerminalInput(text: string): Uint8Array {
+export function encodeTerminalInput(text: string): Uint8Array<ArrayBuffer> {
   return encodeTerminalFrame(TERMINAL_INPUT, new TextEncoder().encode(text));
 }
 
-export function encodeTerminalResize(cols: number, rows: number): Uint8Array {
+export function encodeTerminalResize(cols: number, rows: number): Uint8Array<ArrayBuffer> {
   const payload = new Uint8Array(4);
   const view = new DataView(payload.buffer);
   view.setUint16(0, clampSize(cols));

@@ -39,6 +39,22 @@ Fake computers and explicit `BROWSER_PROVIDER=fake|emulator` use an in-process s
 
 Human input and agent input may coexist on distinct Team screens. “Take control” grants the user an exclusive control lease on that bot’s screen so the embedded viewer accepts input. For a Team bot, takeover is refused with HTTP 409 (“Stop the bot first”) while that bot holds a live computer execution lease or an active run, unless the run is `waiting_takeover` (the bot asked for protected input). Stop the bot first, then take control; after release, the agent may continue. `request_takeover` remains available when the model explicitly needs protected input or human judgment.
 
+## Terminal and files
+
+The web and desktop computer view opens a terminal and a file browser from a dock over the screen.
+
+**Terminal**
+- Without control, the terminal replays the bot's recent `shell` commands. Each command is recorded as a `computer.command` event, holding the redacted command and the tail of its output.
+- A user holding control gets an interactive shell instead. `computer.terminalUrl` starts a small PTY server in the computer beside the screen gateway.
+  - It is bound to the display's control token and reached through the same sealed capability and gateway as the control screen.
+  - Releasing control, expiry, or screen teardown stops it and disconnects every shell.
+- Providers opt in through `SandboxProvider.connectTerminal`. Docker, E2B, Daytona, and Box support it. Host (`desktop`) computers never expose a browser shell.
+
+**Files**
+- Browsing and text preview work on stopped computers through the stored workspace.
+- Download needs a running computer.
+- Upload also needs control. Uploads land under the bot's workspace path and are capped at the attachment size limit.
+
 ## E2B backend
 
 The E2B adapter uses `@e2b/desktop` for machine lifecycle, shell commands, files, and port URLs. Every bot desktop uses the shared Linux runtime, including the first bot. Its X display, screenshots, input, and view/control transports follow the same lifecycle as the other managed providers.

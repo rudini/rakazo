@@ -114,7 +114,7 @@ export class LinuxDesktop {
         screen.env,
         request.controlToken,
         terminalToken,
-        workspacePath(screen.env.workspaceDir, request.cwd ?? "."),
+        workspacePath(screen.env.workspaceDir, request.cwd ?? ""),
       ),
       context,
     );

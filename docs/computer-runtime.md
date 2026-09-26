@@ -49,6 +49,7 @@ The web and desktop computer view opens a terminal and a file browser from a doc
   - It is bound to the display's control token and reached through the same sealed capability and gateway as the control screen.
   - Releasing control, expiry, or screen teardown stops it and disconnects every shell.
 - Providers opt in through `SandboxProvider.connectTerminal`. Docker, E2B, Daytona, and Box support it. Host (`desktop`) computers never expose a browser shell.
+- The fake provider serves an emulated shell from a loopback websocket gateway that speaks the same frame protocol. Tests can then drive the browser terminal through the sealed capability and web proxy without exposing a host shell.
 
 **Files**
 - Browsing and text preview work on stopped computers through the stored workspace.

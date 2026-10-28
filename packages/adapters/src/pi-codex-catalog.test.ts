@@ -17,6 +17,7 @@ import { CHATGPT_OAUTH_PROVIDER, parseModelSecret } from "./pi-oauth.js";
 
 const SPARK = "gpt-5.3-codex-spark";
 const LUNA = "gpt-6-luna";
+const SOL = "gpt-6-sol";
 const ACCESS_TOKEN = "fake-access-token-for-tests";
 const ACCOUNT_ID = "acct-test-1";
 
@@ -1007,7 +1008,7 @@ describe("applyCodexLiveCatalog", () => {
   const liveFor = (entries: Record<string, CodexCatalogModel[]>) =>
     new Map(Object.entries(entries));
 
-  it("restores statically excluded models the account can call", () => {
+  it("adds Spark when the signed-in account lists it", () => {
     expect(
       base.some((entry) => entry.provider === CHATGPT_OAUTH_PROVIDER && entry.id === SPARK),
     ).toBe(false);
@@ -1020,7 +1021,7 @@ describe("applyCodexLiveCatalog", () => {
     const ids = merged
       .filter((entry) => entry.provider === CHATGPT_OAUTH_PROVIDER)
       .map((entry) => entry.id);
-    expect(ids).toEqual([SPARK, LUNA]);
+    expect(ids).toEqual([LUNA, SPARK]);
 
     const spark = merged.find(
       (entry) => entry.provider === CHATGPT_OAUTH_PROVIDER && entry.id === SPARK,
@@ -1113,9 +1114,9 @@ describe("applyCodexLiveCatalog", () => {
   it("keeps API-key-governed codex models outside the live gate", () => {
     const mixedAuth: CodexCatalogSpaceAuth = {
       byProvider: { [CHATGPT_OAUTH_PROVIDER]: "oauth" },
-      byModel: { [CHATGPT_OAUTH_PROVIDER]: { [SPARK]: "api_key" } },
+      byModel: { [CHATGPT_OAUTH_PROVIDER]: { [SOL]: "api_key" } },
       secretIdByProvider: { [CHATGPT_OAUTH_PROVIDER]: "secret-a" },
-      secretIdByModel: { [CHATGPT_OAUTH_PROVIDER]: { [SPARK]: "secret-api" } },
+      secretIdByModel: { [CHATGPT_OAUTH_PROVIDER]: { [SOL]: "secret-api" } },
     };
     const mixedBase = listAvailablePiCatalog(mixedAuth.byProvider, mixedAuth.byModel);
     const merged = applyCodexLiveCatalog(
@@ -1127,34 +1128,35 @@ describe("applyCodexLiveCatalog", () => {
     const codexIds = merged
       .filter((entry) => entry.provider === CHATGPT_OAUTH_PROVIDER)
       .map((entry) => entry.id);
-    expect(codexIds).toEqual([SPARK, LUNA]);
+    expect(codexIds).toEqual([LUNA, SOL]);
   });
 
   it("governs each model by the account that owns its credential", () => {
-    // Spark's model-specific preference points at account B while the provider
+    // A live-only model's preference points at account B while the provider
     // default is account A: each slot follows its own credential's catalog.
+    const split = "gpt-7-codex-split";
     const splitAuth: CodexCatalogSpaceAuth = {
       byProvider: { [CHATGPT_OAUTH_PROVIDER]: "oauth" },
-      byModel: { [CHATGPT_OAUTH_PROVIDER]: { [SPARK]: "oauth" } },
+      byModel: { [CHATGPT_OAUTH_PROVIDER]: { [split]: "oauth" } },
       secretIdByProvider: { [CHATGPT_OAUTH_PROVIDER]: "secret-a" },
-      secretIdByModel: { [CHATGPT_OAUTH_PROVIDER]: { [SPARK]: "secret-b" } },
+      secretIdByModel: { [CHATGPT_OAUTH_PROVIDER]: { [split]: "secret-b" } },
     };
     const splitBase = listAvailablePiCatalog(splitAuth.byProvider, splitAuth.byModel);
     const merged = applyCodexLiveCatalog(
       splitBase,
       splitAuth,
-      liveFor({ "secret-a": [liveModel(LUNA)], "secret-b": [liveModel(SPARK)] }),
+      liveFor({ "secret-a": [liveModel(LUNA)], "secret-b": [liveModel(LUNA), liveModel(split)] }),
     );
     const codexIds = merged
       .filter((entry) => entry.provider === CHATGPT_OAUTH_PROVIDER)
       .map((entry) => entry.id);
-    expect(codexIds).toEqual([SPARK, LUNA]);
+    expect(codexIds).toEqual([LUNA, split]);
 
-    // Account A listing Spark must not unlock it — B's slot has no catalog read.
+    // Account A listing it must not unlock it — B's slot has no catalog read.
     const wrongAccount = applyCodexLiveCatalog(
       splitBase,
       splitAuth,
-      liveFor({ "secret-a": [liveModel(SPARK), liveModel(LUNA)] }),
+      liveFor({ "secret-a": [liveModel(split), liveModel(LUNA)] }),
     );
     const wrongIds = wrongAccount
       .filter((entry) => entry.provider === CHATGPT_OAUTH_PROVIDER)

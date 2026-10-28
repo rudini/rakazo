@@ -5391,13 +5391,13 @@ describe("codex live catalog", () => {
     expect(ids).not.toContain("gpt-unknown-from-backend");
   });
 
-  it("never reads the catalog for an API-key credential and still lists Spark", async () => {
+  it("never reads the catalog for an API-key credential", async () => {
     const read = vi.fn().mockResolvedValue([liveModel(spark)]);
     const { handler } = catalogDeps({ read, apiKeyOnly: true });
 
     const ids = await listIds(handler);
 
-    expect(ids).toContain(spark);
+    expect(ids).toContain(luna);
     expect(read).not.toHaveBeenCalled();
   });
 
@@ -5478,7 +5478,7 @@ describe("codex live catalog", () => {
 
     // Spark's preference points at account B: only B's catalog can unlock it.
     const read = vi.fn(async (_userId: string, account: { accountId: string }) =>
-      account.accountId === "acct-b" ? [liveModel(spark)] : [liveModel(luna)],
+      account.accountId === "acct-b" ? [liveModel(luna), liveModel(spark)] : [liveModel(luna)],
     );
     deps.codexCatalog = { read };
     const first = await listIds(new RPCHandler(createRouter(deps)));
@@ -6308,7 +6308,7 @@ describe("bot model auth on save", () => {
     );
   });
 
-  it("rejects setting Codex Spark on the space's ChatGPT subscription credential", async () => {
+  it("rejects setting Codex Spark when the ChatGPT account does not list it", async () => {
     const oauthCredential = credentialRow("cred-oauth", "secret-oauth");
     const { preferenceFindFirst, handler } = saveDeps({
       modelId: luna,
@@ -6331,7 +6331,7 @@ describe("bot model auth on save", () => {
     await expect(response.json()).resolves.toEqual({
       json: expect.objectContaining({
         code: "BAD_REQUEST",
-        message: expect.stringMatching(/not available with your current sign-in/i),
+        message: "Unknown model for that provider",
       }),
     });
     expect(preferenceFindFirst).toHaveBeenCalledWith(

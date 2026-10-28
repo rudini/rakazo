@@ -78,6 +78,8 @@ export function otelPiContext(
         addEvent: (name, values) => {
           span.addEvent(name, attributes(values, captureContent));
         },
+        // Pi never links spans; a link's opaque context has no OTel span context to point at.
+        addLink: () => {},
         setAttributes: (values) => {
           span.setAttributes(attributes(values, captureContent));
         },

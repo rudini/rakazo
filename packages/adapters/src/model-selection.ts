@@ -296,9 +296,8 @@ function modelAuthIsRestricted(provider: string, modelId: string): boolean {
   const entry = listPiCatalog().find(
     (item) => item.provider === canonicalPiProviderId(provider) && item.id === modelId,
   );
-  if (!entry) return false;
   return (["oauth", "api_key", "openai_compatible", "disconnected"] as const).some(
-    (kind) => !catalogModelAvailableForAuth(provider, modelId, kind, entry.auth),
+    (kind) => !catalogModelAvailableForAuth(provider, modelId, kind, entry?.auth),
   );
 }
 
